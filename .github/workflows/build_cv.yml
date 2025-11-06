@@ -1,42 +1,37 @@
-name: build_paper
+name: Build CV PDF
 
 on:
   push:
     branches:
       - master
     paths:
-      - cv/**
+      - 'cv/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Github Action for LaTeX
-        uses: xu-cheng/latex-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX CV
+        uses: xu-cheng/latex-action@v3
         with:
-          working_directory: ./cv
+          working_directory: cv
           root_file: cv.tex
 
-      - name: Move pdf
+      - name: Prepare artifact directory
         run: |
-          mkdir public
-          ls
-          ls cv
+          mkdir -p public
           mv cv/cv.pdf public/cv.pdf
-          ls public
 
-      - name: Upload PDF
-        uses: actions/upload-artifact@v2
+      - name: Upload CV artifact
+        uses: actions/upload-artifact@v4
         with:
           name: avi_cv.pdf
-          path: public/cv.pdf # or path/to/artifact
-
-#      - name: Deploy 🚀
-#        uses: JamesIves/github-pages-deploy-action@releases/v3
-#        with:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          BRANCH: gh-pages
-#          FOLDER: public
-#          CLEAN: true
+          path: public/cv.pdf
+          retention-days: 7
