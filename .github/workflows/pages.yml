@@ -1,36 +1,62 @@
-name: hugo publish
+name: Deploy Hugo site to Pages
 
 on:
   push:
     branches:
       - master
     paths:
-      - content/**
+      - 'content/**'
+      - 'layouts/**'
+      - 'static/**'
+      - 'themes/**'
+      - 'config.toml'
+      - 'config/**/*.toml'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
 jobs:
-  build-deploy:
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-          submodules: true
-          fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: 🛎 Setup Hugo
-      uses: peaceiris/actions-hugo@v2
-      with:
-        hugo-version: 'latest'
-        extended: true
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
 
-    - name: 🚧 Build Website
-      run: hugo --minify
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: latest
+          extended: true
 
-#     - name: 🚀 Deploy website to avivajpeyi/avivajpeyi.github.io
-#       uses: peaceiris/actions-gh-pages@v3
-#       with:
-#         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-#         external_repository: avivajpeyi/avivajpeyi.github.io
-#         publish_dir: ./public
-#         publish_branch: master
-#         user_name: 'github-actions[bot]'
-#         user_email: 'github-actions[bot]@users.noreply.github.com'
-#         commit_message: ${{ github.event.head_commit.message }}
+      - name: Build website
+        run: hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
