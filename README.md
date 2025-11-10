@@ -1,3 +1,7 @@
+# MOVED TO https://github.com/avivajpeyi/dev_site
+# ARCHIVE REPO
+
+
 ![website build](https://github.com/avivajpeyi/my_site_devtools/workflows/hugo%20publish/badge.svg?branch=master)
 
 This repo helps me build my website. 
